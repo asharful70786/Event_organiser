@@ -53,7 +53,7 @@ export const getSlots = async (req, res) => {
       isFull: sl.bookedCount >= sl.capacity,
     }));
 
-    return res.json(result);
+    return res.status(200).json(result);
   } catch (err) {
     return res.status(500).json({ message: "Server error" });
   }
