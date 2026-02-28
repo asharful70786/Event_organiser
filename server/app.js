@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from 'dotenv';
 import connectDB from "./config/db.js";
+import helmet from "helmet";
 import userBookingRoutes from "./routes/booking.js";
 import adminBookingRoutes from "./routes/adminBooking.js";
 import { requestLogger } from "./middleware/requestLogger.js";
@@ -13,6 +14,7 @@ dotenv.config();
 connectDB();
 
 const app = express();
+app.use(helmet());
 app.set("trust proxy", 1); 
 app.use(requestLogger);
 
