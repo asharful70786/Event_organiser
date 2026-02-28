@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 const SlotSchema = new mongoose.Schema(
   {
-    date: { type: String, required: true },          // "2026-03-07"
-    start: { type: String, required: true },         // "10:00"
-    end: { type: String, required: true },           // "11:00"
-    label: { type: String, required: true },         // "10:00-11:00"
+    date: { type: String, required: true },         
+    start: { type: String, required: true },      
+    end: { type: String, required: true },          
+    label: { type: String, required: true },       
 
     capacity: { type: Number, default: 4 },
     bookedCount: { type: Number, default: 0 },

@@ -22,7 +22,7 @@ app.use(cors({
   origin: process.env.client_Url,
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: "10kb" }));
 
 
 
