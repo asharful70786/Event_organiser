@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import connectDB from "./config/db.js";
 import userBookingRoutes from "./routes/booking.js";
 import adminBookingRoutes from "./routes/adminBooking.js";
+import { requestLogger } from "./middleware/requestLogger.js";
 
 
 dotenv.config();
@@ -12,10 +13,13 @@ dotenv.config();
 connectDB();
 
 const app = express();
+app.set("trust proxy", 1); 
+app.use(requestLogger);
 
 app.use(cors({
   origin: process.env.client_Url,
 }));
+
 app.use(express.json());
 
 

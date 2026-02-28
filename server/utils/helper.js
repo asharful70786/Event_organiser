@@ -1,4 +1,3 @@
-// utils/helper.js
 
 export function isAllowedMarch2026OddDate(dateStr) {
   if (!dateStr) return false;
@@ -27,12 +26,9 @@ function hourToTime(h) {
 }
 
 export function generateSlotsForDate(dateStr) {
-  // March 1 => Schedule A (10-19)
-  // March 3 => Schedule B (9-17)
-  // Alternates across odd dates
   const day = Number(dateStr.split("-")[2]);
 
-  const oddIndex = (day - 1) / 2; // 0..15
+  const oddIndex = (day - 1) / 2; 
   const schedule = oddIndex % 2 === 0 ? "A" : "B";
 
   const startHour = schedule === "A" ? 10 : 9;
