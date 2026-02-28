@@ -4,14 +4,14 @@ import Booking from "../models/BookingModel.js";
 import { isAllowedMarch2026OddDate, generateSlotsForDate } from "../utils/helper.js";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import mongoose from "mongoose";
-import { sendBookingEmails } from "../services/sendMail.js";
+import { sendBookingEmail } from "../services/sendMail.js";
+import { createBookingSchema } from "../validation/BookingValidation.js";
 
 
 
 export const getSlots = async (req, res) => {
   try {
     const { date } = req.query;
-    console.log(req.body)
 
     if (!isAllowedMarch2026OddDate(date)) {
       return res.status(400).json({
@@ -19,7 +19,7 @@ export const getSlots = async (req, res) => {
       });
     }
 
-    // Ensure slots exist (simple upsert loop)
+
     const generated = generateSlotsForDate(date);
 
     for (const s of generated) {
@@ -60,27 +60,14 @@ export const getSlots = async (req, res) => {
 
 export const createBooking = async (req, res) => {
   const session = await mongoose.startSession();
-
   try {
-    const { fullName, email, phone, date, slotId, message, city, country } =
-      req.body;
 
-    // Minimal required validation
-    if (!fullName || !email || !phone || !date || !slotId || !country) {
-      return res.status(400).json({ message: "Missing required fields." });
-    }
-
-    // Validate ISO country (2 uppercase letters)
-    if (!/^[A-Z]{2}$/.test(country)) {
-      return res.status(400).json({ message: "Invalid country code." });
-    }
-
-    // Validate phone properly (E.164)
+    const { success, data, error } = createBookingSchema.safeParse(req.body);
+    if (!success)  return res.status(400).json({ error: z.flattenError(error).fieldErrors });
+    const { fullName, email, phone, date, slotId, message, city, country } = data;
+    console.log("error before Zod ", error);
     const phoneObj = parsePhoneNumberFromString(phone);
-    if (!phoneObj || !phoneObj.isValid()) {
-      return res.status(400).json({ message: "Invalid phone number." });
-    }
-
+   
     session.startTransaction();
 
     const slot = await Slot.findById(slotId).session(session);
@@ -103,10 +90,7 @@ export const createBooking = async (req, res) => {
         $expr: { $lt: ["$bookedCount", "$capacity"] },
       },
       { $inc: { bookedCount: 1 } },
-      {
-        returnDocument: "after",
-        session,
-      }
+      { returnDocument: "after", session }
     );
 
     if (!updatedSlot) {
@@ -114,70 +98,40 @@ export const createBooking = async (req, res) => {
       return res.status(409).json({ message: "Slot is full." });
     }
 
-    const booking = await Booking.create(
-      [
-        {
-          fullName: fullName.trim(),
-          email: email.trim().toLowerCase(),
-          phone: phoneObj.number, // normalized E.164
-          country,
-          city: city?.trim() || "",
-          date,
-          slotId,
-          slotLabel: updatedSlot.label,
-          message: message?.trim() || "",
-        },
-      ],
+    const bookingDocs = await Booking.create(
+      [{
+          fullName: fullName.trim(),   email: email.trim().toLowerCase(), phone: phoneObj.number, country, city: city?.trim() || "", date, slotId,slotLabel: updatedSlot.label,message: message?.trim() || ""
+        }],
       { session }
     );
 
     await session.commitTransaction();
-    const saved = booking[0];
+    const saved = bookingDocs[0];
+    try {
+      await sendBookingEmail({   to: saved.email,
+        subject: "Your booking is confirmed ✅",        user: saved.fullName, msg: `Your booking has been confirmed for ${saved.date} at ${saved.slotLabel}.`,  number: saved.phone, country: saved.country, bookingId: saved._id.toString(), date: saved.date,  slotLabel: saved.slotLabel,
+      });
 
-    // send mail here  
-    
-  
-     
-     res.status(201).json({
+      await sendBookingEmail({
+        to: process.env.ADMIN_EMAIL, subject: `New booking: ${saved.fullName} (${saved.date} ${saved.slotLabel})`,
+        user: "Admin",  msg: "New booking received. Please check the dashboard.", number: saved.phone,  country: saved.country, bookingId: saved._id.toString(), date: saved.date,slotLabel: saved.slotLabel,
+      });
+    } catch (mailErr) {
+      console.error("Email send failed:", mailErr?.message || mailErr);
+    }
+
+    return res.status(201).json({
       message: "Booking created successfully.",
-      booking: {
-        id: saved._id,
-        fullName: saved.fullName,
-        email: saved.email,
-        phone: saved.phone,
-        date: saved.date,
-        slot: saved.slotLabel,
-        country: saved.country,
-        city: saved.city,
-      },
+      booking: {  id: saved._id,
+        fullName: saved.fullName, email: saved.email, phone: saved.phone, date: saved.date,  slot: saved.slotLabel, country: saved.country, city: saved.city, message: saved.message }
     });
-
-     try {
-  await sendBookingEmails(saved, {
-    userEventNote: `You’re booked for ${saved.date} at ${saved.slotLabel}. See you in March 2026.`,
-    adminNote: `User registered to the March Event (${saved.date} - ${saved.slotLabel}).`,
-  });
-  await sendBookingEmails(saved, {
-    userEventNote: `You’re booked for ${saved.date} at ${saved.slotLabel}. See you in March 2026.`
-  });
-  // also have t send mail to the user as well with a different message (confirmation + event note)
-  
-
-
-} catch (mailErr) {
-  console.error("Email send failed:", mailErr?.message || mailErr);
-}
-
-
   } catch (err) {
     try {
       await session.abortTransaction();
     } catch {}
-
     if (err?.code === 11000) {
       return res.status(409).json({ message: "Duplicate booking." });
     }
-
     return res
       .status(500)
       .json({ message: err?.message || "Server error." });

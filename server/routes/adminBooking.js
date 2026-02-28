@@ -8,7 +8,6 @@ const router = express.Router();
 
 // simple validation endpoint
 router.get("/validate", adminAuth, (req, res) => {
-  console.log("hit on admin ");
   res.status(200).json({ success: true });
 });
 
@@ -23,7 +22,7 @@ router.get("/bookings", adminAuth, async (req, res) => {
     const filter = {};
     if (name) filter.fullName = { $regex: name, $options: "i" };
     if (phone) filter.phone = { $regex: phone, $options: "i" };
-    if (date) filter.date = date; // store date as YYYY-MM-DD string in Booking
+    if (date) filter.date = date; 
     if (country) filter.country = { $regex: country, $options: "i" };
 
     const [items, total] = await Promise.all([
@@ -66,16 +65,7 @@ router.get("/bookings/export", adminAuth, async (req, res) => {
       return `"${s.replace(/"/g, '""')}"`;
     };
 
-    const header = [
-      "Full Name",
-      "Email",
-      "Phone",
-      "Country",
-      "Date",
-      "Slot",
-      "Message",
-      "Created At",
-    ];
+    const header = ["Full Name","Email", "Phone", "Country", "Date", "Slot", "Message", "Created At" ];
 
     const rows = items.map((b) => [
       escapeCsv(b.fullName),
@@ -99,8 +89,6 @@ router.get("/bookings/export", adminAuth, async (req, res) => {
     return res.status(500).json({ message: "Failed to export bookings" });
   }
 });
-
-
 
 
 
