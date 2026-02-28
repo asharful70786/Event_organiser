@@ -131,21 +131,13 @@ export default function AdminDashboard({ onUnauthorized }) {
                 Bookings
               </h2>
               <p className="text-sm text-gray-500 mt-1">
-                {loading
-                  ? "Loading..."
-                  : `Showing ${rows.length} of ${total} bookings`}
+                {loading  ? "Loading...": `Showing ${rows.length} of ${total} bookings`}
               </p>
             </div>
           </div>
-
-          <BookingsTable rows={rows} loading={loading} />
-
+          <BookingsTable rows={rows} loading={loading} /> 
           <div className="px-6 py-4 border-t border-gray-200">
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-            />
+            <Pagination  page={page} totalPages={totalPages} onPageChange={setPage}  />
           </div>
         </div>
       </main>

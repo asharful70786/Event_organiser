@@ -135,19 +135,30 @@ export default function BookingForm() {
 
       setSuccess(true);
     } catch (err) {
-      if (err?.status === 409) {
-        setSubmitError("This slot was just taken. Please select another.");
-        try {
-          const updatedRaw = await getSlots(date);
-          setSlots(normalizeSlots(updatedRaw));
-          setSelectedSlotId("");
-        } catch {}
-      } else {
-        setSubmitError(err?.message || "Something went wrong. Please try again.");
-      }
-    } finally {
-      setSubmitting(false);
+  if (err?.status === 409) {
+    // ✅ show the real reason (duplicate OR full)
+    const msg = err?.message || "Conflict. Please try again.";
+    setSubmitError(msg);
+
+    // ✅ only refetch slots if it was actually a slot-capacity conflict
+    const looksLikeSlotFull =
+      /slot is full|full|taken|capacity/i.test(msg);
+
+    if (looksLikeSlotFull) {
+      try {
+        const updatedRaw = await getSlots(date);
+        setSlots(normalizeSlots(updatedRaw));
+        setSelectedSlotId("");
+      } catch {}
     }
+
+    return;
+  }
+
+  setSubmitError(err?.message || "Something went wrong. Please try again.");
+} finally {
+  setSubmitting(false);
+}
   };
 
   const resetForm = () => {
@@ -188,6 +199,7 @@ export default function BookingForm() {
 
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
         {/* Hero */}
+         
         <div className="text-center mb-14">
           <p className="text-sm font-semibold uppercase tracking-widest text-teal-600 mb-4">
             Exclusive March 2026 Experience

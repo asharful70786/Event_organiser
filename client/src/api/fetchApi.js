@@ -4,25 +4,34 @@ async function request(endpoint, options = {}) {
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     headers: {
       "Content-Type": "application/json",
-      ...options.headers,
+      ...(options.headers || {}),
     },
     ...options,
   });
 
-  const data = await res.json().catch(() => ({}));
+  let data = {};
+  try {
+    data = await res.json();
+  } catch {
+    data = {};
+  }
 
   if (!res.ok) {
-    throw {
-      status: res.status,
-      message: data.message || "Something went wrong",
-    };
+    const msg =
+      data?.message ||          // preferred
+      data?.error ||            // your backend duplicate case
+      `Request failed (${res.status})`;
+
+    const err = new Error(msg);
+    err.status = res.status;
+    err.data = data;
+    throw err;
   }
 
   return data;
 }
 
-export const getSlots = (date) =>
-  request(`/slots?date=${date}`);
+export const getSlots = (date) => request(`/slots?date=${date}`);
 
 export const createBooking = (payload) =>
   request(`/bookings`, {
