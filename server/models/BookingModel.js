@@ -26,7 +26,7 @@ const BookingSchema = new mongoose.Schema(
 );
 
 BookingSchema.index({ email: 1, slotId: 1 }, { unique: true });
-\
+
 
 
 const Booking = mongoose.model("Booking", BookingSchema);
