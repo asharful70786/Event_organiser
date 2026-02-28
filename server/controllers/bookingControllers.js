@@ -108,14 +108,16 @@ export const createBooking = async (req, res) => {
     await session.commitTransaction();
     const saved = bookingDocs[0];
     try {
-      await sendBookingEmail({   to: saved.email,
-        subject: "Your booking is confirmed ✅",        user: saved.fullName, msg: `Your booking has been confirmed for ${saved.date} at ${saved.slotLabel}.`,  number: saved.phone, country: saved.country, bookingId: saved._id.toString(), date: saved.date,  slotLabel: saved.slotLabel,
-      });
 
       await sendBookingEmail({
         to: process.env.ADMIN_EMAIL, subject: `New booking: ${saved.fullName} (${saved.date} ${saved.slotLabel})`,
         user: "Admin",  msg: "New booking received. Please check the dashboard.", number: saved.phone,  country: saved.country, bookingId: saved._id.toString(), date: saved.date,slotLabel: saved.slotLabel,
       });
+
+      await sendBookingEmail({   to: saved.email,
+        subject: "Your booking is confirmed ✅",  user: saved.fullName, msg: `Your booking has been confirmed for ${saved.date} at ${saved.slotLabel}.`,  number: saved.phone, country: saved.country, bookingId: saved._id.toString(), date: saved.date,  slotLabel: saved.slotLabel,
+      });
+            
     } catch (mailErr) {
       console.error("Email send failed:", mailErr?.message || mailErr);
     }
