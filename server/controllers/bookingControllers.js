@@ -5,8 +5,11 @@ import { isAllowedMarch2026OddDate, generateSlotsForDate } from "../utils/helper
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import mongoose from "mongoose";
 import { sendBookingEmail } from "../services/sendMail.js";
+import { z } from "zod";
 import { createBookingSchema } from "../validation/BookingValidation.js";
 import { logger, reqMeta } from "../utils/logger.js";
+
+
 
 
 
@@ -28,7 +31,7 @@ export const getSlots = async (req, res) => {
       await Slot.updateOne(
         { date, start: s.start },
         {
-          $setOnInsert: {
+          $setOnInsert: {   //only apply on new documents
             date,
             start: s.start,
             end: s.end,

@@ -26,13 +26,13 @@ function hourToTime(h) {
 }
 
 export function generateSlotsForDate(dateStr) {
-  const day = Number(dateStr.split("-")[2]);
+  const day = Number(dateStr.split("-")[2]); // 2026-03-11 => ["2026", "03", "11"]  =>  11 
 
   const oddIndex = (day - 1) / 2; 
-  const schedule = oddIndex % 2 === 0 ? "A" : "B";
+  const schedule = oddIndex % 2 === 0 ? "A" : "B"; //if odd A and if even B
 
-  const startHour = schedule === "A" ? 10 : 9;
-  const endHour = schedule === "A" ? 19 : 17;
+  const startHour = schedule === "A" ? 10 : 9; //?10 AM to 7 PM
+  const endHour = schedule === "A" ? 19 : 17; // ?9 AM to 5 PM
 
   const slots = [];
 
@@ -46,5 +46,5 @@ export function generateSlotsForDate(dateStr) {
     });
   }
 
-  return slots;
+  return slots;  //{  start: "10:00",  end: "11:00",  label: "10:00-11:00"}
 }
