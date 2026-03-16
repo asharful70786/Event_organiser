@@ -1,11 +1,7 @@
-// src/components/SlotPicker.jsx
+
 import React, { useState } from 'react';
 
-/**
- * Professional SlotPicker Component
- * Features: Framer-like interactions, accessibility ARIA labels, 
- * micro-interactions, and visual capacity indicators.
- */
+
 export default function SlotPicker({
   slots = [],
   loading = false,

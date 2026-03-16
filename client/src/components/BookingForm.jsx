@@ -215,10 +215,7 @@ export default function BookingForm() {
           </p>
 
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-4 py-1.5 text-xs font-medium text-teal-700">
-              📅 Selected odd dates
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-4 py-1.5 text-xs font-medium text-emerald-700">
+                     <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-4 py-1.5 text-xs font-medium text-emerald-700">
               👥 Max 4 per slot
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-4 py-1.5 text-xs font-medium text-blue-700">
